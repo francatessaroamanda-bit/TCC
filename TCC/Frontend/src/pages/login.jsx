@@ -40,37 +40,33 @@ function Login() {
 
         <form onSubmit={entrar}>
 
-          <div className="login-field">
-            <label>Usuário</label>
+        <p className="login-subtitle" style={{ textAlign: 'left', marginBottom: '6px' }}>
+          Usuário
+      </p>
+        <input
+          type="text"
+          placeholder="Digite seu usuário"
+          value={usuario}
+          onChange={(e) => setUsuario(e.target.value)}
+        />
 
-            <input
-              type="text"
-              placeholder="Digite seu usuário"
-              value={usuario}
-              onChange={(e) => setUsuario(e.target.value)}
-            />
-          </div>
-
-          <div className="login-field">
-            <label>Senha</label>
-
+          
+            <p className="login-subtitle" style={{ textAlign: 'left', marginBottom: '6px' }}>
+              Senha
+            </p>
             <input
               type="password"
               placeholder="Digite sua senha"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
             />
-          </div>
+          
 
           <button type="submit">
             Entrar
           </button>
 
         </form>
-
-        <div className="login-footer">
-          Sistema de gerenciamento Pet Shop
-        </div>
 
       </div>
 
