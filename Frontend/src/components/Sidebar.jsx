@@ -9,15 +9,19 @@ import {
 } from "react-icons/fa";
 
 function Sidebar() {
-
   const navigate = useNavigate();
 
-  function sair() {
+  const adminLogado =
+    sessionStorage.getItem("adminLogado") === "true";
 
+  function sair() {
     // Remove o acesso do administrador
     sessionStorage.removeItem("adminLogado");
 
-    // Volta para o login
+    // Remove o acesso do cliente
+    sessionStorage.removeItem("usuarioLogado");
+
+    // Volta para o único login
     navigate("/login", {
       replace: true
     });
@@ -26,35 +30,45 @@ function Sidebar() {
   return (
     <aside className="sidebar">
 
+      {/* LOGO */}
+
       <div className="logo">
         <h2>Mundo Pet</h2>
       </div>
 
+      {/* HOME */}
 
       <Link to="/">
         <FaHome /> Home
       </Link>
 
+      {/* CLIENTES - SOMENTE ADMIN */}
 
-      <Link to="/clientes">
-        <FaUsers /> Clientes
-      </Link>
+      {adminLogado && (
+        <Link to="/clientes">
+          <FaUsers /> Clientes
+        </Link>
+      )}
 
+      {/* PETS */}
 
       <Link to="/pets">
         <FaDog /> Pets
       </Link>
 
+      {/* AGENDAMENTOS */}
 
       <Link to="/agendamentos">
         <FaCalendarAlt /> Agendamentos
       </Link>
 
+      {/* SERVIÇOS */}
 
       <Link to="/servicos">
         <FaCut /> Serviços
       </Link>
 
+      {/* SAIR */}
 
       <button
         className="logout"

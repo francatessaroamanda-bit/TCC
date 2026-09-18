@@ -1,24 +1,82 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 function Login() {
   const navigate = useNavigate();
 
-  const [usuario, setUsuario] = useState("");
+  const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [mensagemErro, setMensagemErro] = useState("");
 
   function entrar(e) {
     e.preventDefault();
 
-    // Login temporário
-    if (usuario === "admin" && senha === "1234") {
-      // Registra que o administrador está logado
-      sessionStorage.setItem("adminLogado", "true");
+    setMensagemErro("");
 
-      // Vai para a Home
-      navigate("/", { replace: true });
-    } else {
-      alert("Usuário ou senha incorretos!");
+    if (!email.trim() || !senha.trim()) {
+      setMensagemErro("Preencha todos os campos.");
+      return;
+    }
+
+    // LOGIN DO ADMINISTRADOR
+    if (
+      email.trim().toLowerCase() === "admin@admin.com" &&
+      senha === "1234"
+    ) {
+      sessionStorage.setItem("adminLogado", "true");
+      sessionStorage.removeItem("usuarioLogado");
+
+      navigate("/", {
+        replace: true
+      });
+
+      return;
+    }
+
+    // LOGIN DO CLIENTE
+    const usuarioSalvo =
+      localStorage.getItem("usuarioCadastrado");
+
+    if (!usuarioSalvo) {
+      setMensagemErro(
+        "Conta não encontrada. Crie sua conta primeiro."
+      );
+      return;
+    }
+
+    try {
+      const usuario = JSON.parse(usuarioSalvo);
+
+      if (
+        usuario.email.toLowerCase() !==
+          email.trim().toLowerCase() ||
+        usuario.senha !== senha
+      ) {
+        setMensagemErro(
+          "E-mail ou senha incorretos."
+        );
+        return;
+      }
+
+      sessionStorage.setItem(
+        "usuarioLogado",
+        "true"
+      );
+
+      sessionStorage.removeItem(
+        "adminLogado"
+      );
+
+      navigate("/", {
+        replace: true
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      setMensagemErro(
+        "Erro ao verificar a conta."
+      );
     }
   }
 
@@ -27,46 +85,57 @@ function Login() {
 
       <div className="login-card">
 
-        {/* Logo */}
-        <div className="login-logo">
-          Mundo Pet
-        </div>
+        <h1>Mundo Pet</h1>
 
-        <h1>Bem-vindo!</h1>
-
-        <p className="login-subtitle">
-          Acesse o sistema de gerenciamento
+        <p>
+          Entre na sua conta
         </p>
 
         <form onSubmit={entrar}>
 
-        <p className="login-subtitle" style={{ textAlign: 'left', marginBottom: '6px' }}>
-          Usuário
-      </p>
-        <input
-          type="text"
-          placeholder="Digite seu usuário"
-          value={usuario}
-          onChange={(e) => setUsuario(e.target.value)}
-        />
+          <input
+            type="email"
+            placeholder="E-mail"
+            value={email}
+            onChange={(e) => {
+              setMensagemErro("");
+              setEmail(e.target.value);
+            }}
+          />
 
-          
-            <p className="login-subtitle" style={{ textAlign: 'left', marginBottom: '6px' }}>
-              Senha
+          <input
+            type="password"
+            placeholder="Senha"
+            value={senha}
+            onChange={(e) => {
+              setMensagemErro("");
+              setSenha(e.target.value);
+            }}
+          />
+
+          {mensagemErro && (
+            <p className="mensagem-erro">
+              {mensagemErro}
             </p>
-            <input
-              type="password"
-              placeholder="Digite sua senha"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-            />
-          
+          )}
 
           <button type="submit">
             Entrar
           </button>
 
         </form>
+
+        <div className="criar-conta">
+
+          <p>
+            Não possui uma conta?
+          </p>
+
+          <Link to="/cadastro">
+            Criar conta
+          </Link>
+
+        </div>
 
       </div>
 

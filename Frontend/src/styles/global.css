@@ -1,23 +1,38 @@
+/* ==========================================
+   CONFIGURAÇÕES GERAIS
+========================================== */
+
 body {
   font-family: "Trebuchet MS", sans-serif;
-  background: #faf3e8;
-  color: #4a4036;
+  background: #fdf8f0;
+  color: #5a4a3d;
   margin: 0;
 }
+
+
+/* ==========================================
+   LAYOUT
+========================================== */
 
 .layout {
   display: flex;
   min-height: 100vh;
 }
 
+
+/* ==========================================
+   SIDEBAR
+========================================== */
+
 .sidebar {
   width: 270px;
-  background: #fffaf2;
+  background: #fffaf3;
   padding: 30px 25px;
   border-radius: 0 30px 30px 0;
-  box-shadow: 5px 0 20px rgba(0,0,0,0.05);
+  box-shadow: 5px 0 20px rgba(120, 90, 60, 0.05);
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
 .logo {
@@ -30,12 +45,12 @@ body {
   font-size: 34px;
   font-weight: 700;
   letter-spacing: -1px;
-  color: #8b5e3c;
+  color: #a06b48;
   margin: 0;
 }
 
 .sidebar a {
-  color: #6b5747;
+  color: #766354;
   text-decoration: none;
   font-size: 20px;
   padding: 15px;
@@ -47,23 +62,39 @@ body {
 }
 
 .sidebar a:hover {
-  background: #f3e4d1;
+  background: #f7eadc;
 }
 
 .logout {
   margin-top: auto;
-  background: #b87552;
+  background: #d39a73;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 20px;
+  font-size: 16px;
+  cursor: pointer;
 }
 
 .logout:hover {
-  background: #9d6040;
+  background: #c48762;
 }
+
+
+/* ==========================================
+   CONTEÚDO
+========================================== */
 
 .content {
   flex: 1;
   padding: 40px;
   box-sizing: border-box;
 }
+
+
+/* ==========================================
+   TÍTULOS
+========================================== */
 
 .titulo-clientes {
   display: flex;
@@ -74,7 +105,34 @@ body {
 
 .titulo-clientes h1 {
   margin: 0;
+  color: #6f5948;
 }
+
+
+/* ==========================================
+   BOTÕES GERAIS
+========================================== */
+
+button {
+  background: #d39a73;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 20px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: 0.2s ease;
+}
+
+button:hover {
+  background: #c48762;
+}
+
+
+/* ==========================================
+   HOME
+========================================== */
 
 .home-container {
   width: 100%;
@@ -88,7 +146,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+  box-shadow: 0 10px 30px rgba(120, 90, 60, 0.06);
   box-sizing: border-box;
 }
 
@@ -98,15 +156,20 @@ body {
 
 .welcome-card h1 {
   font-size: 40px;
-  color: #8b5e3c;
+  color: #a06b48;
   margin: 0 0 15px;
 }
 
 .welcome-card p {
   font-size: 20px;
-  color: #6b5747;
+  color: #806e60;
   margin: 0;
 }
+
+
+/* ==========================================
+   IMAGENS DA HOME
+========================================== */
 
 .home-imagens {
   display: grid;
@@ -122,13 +185,13 @@ body {
   border-radius: 22px;
   overflow: hidden;
   background: white;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+  box-shadow: 0 8px 20px rgba(120, 90, 60, 0.06);
   transition: 0.2s ease;
 }
 
 .imagem-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 25px rgba(0,0,0,0.09);
+  box-shadow: 0 12px 25px rgba(120, 90, 60, 0.09);
 }
 
 .imagem-card img {
@@ -138,13 +201,18 @@ body {
   display: block;
 }
 
+
+/* ==========================================
+   SERVIÇOS DA HOME
+========================================== */
+
 .home-servicos {
   margin-top: 40px;
   margin-bottom: 30px;
 }
 
 .home-servicos h2 {
-  color: #8b5e3c;
+  color: #a06b48;
   font-size: 28px;
   text-align: center;
   margin: 0 0 25px;
@@ -160,19 +228,19 @@ body {
   background: white;
   padding: 28px;
   border-radius: 25px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 8px 20px rgba(120, 90, 60, 0.05);
   text-align: center;
   box-sizing: border-box;
 }
 
 .servico-home-card h3 {
-  color: #8b5e3c;
+  color: #a06b48;
   font-size: 22px;
   margin: 0 0 12px;
 }
 
 .servico-home-card p {
-  color: #6b5747;
+  color: #806e60;
   font-size: 16px;
   line-height: 1.5;
   min-height: 48px;
@@ -180,9 +248,14 @@ body {
 }
 
 .servico-home-card strong {
-  color: #b87552;
+  color: #c48762;
   font-size: 20px;
 }
+
+
+/* ==========================================
+   CARDS DE PETS / CLIENTES / SERVIÇOS
+========================================== */
 
 .pets-container {
   display: grid;
@@ -194,11 +267,11 @@ body {
   background: white;
   padding: 25px;
   border-radius: 25px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 8px 20px rgba(120, 90, 60, 0.05);
 }
 
 .pet-card h2 {
-  color: #8b5e3c;
+  color: #a06b48;
   margin-bottom: 15px;
 }
 
@@ -213,23 +286,13 @@ body {
 .info-label {
   font-size: 16px;
   font-weight: bold;
-  color: #8b5e3c;
+  color: #a06b48;
 }
 
-button {
-  background: #c98b5b;
-  color: white;
-  border: none;
-  padding: 12px 25px;
-  border-radius: 20px;
-  font-size: 16px;
-  cursor: pointer;
-  margin-bottom: 20px;
-}
 
-button:hover {
-  opacity: 0.85;
-}
+/* ==========================================
+   FORMULÁRIOS
+========================================== */
 
 .formulario {
   background: white;
@@ -237,7 +300,7 @@ button:hover {
   border-radius: 25px;
   margin: 20px 0 30px;
   width: 400px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 8px 20px rgba(120, 90, 60, 0.05);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -250,9 +313,9 @@ button:hover {
   padding: 13px 15px;
   margin-bottom: 10px;
   border-radius: 15px;
-  border: 1px solid #ddd3c8;
-  background: #fff;
-  color: #4a4036;
+  border: 1px solid #e5d8cb;
+  background: #fffdf9;
+  color: #5a4a3d;
   font-family: "Trebuchet MS", sans-serif;
   font-size: 15px;
   box-sizing: border-box;
@@ -262,23 +325,23 @@ button:hover {
 
 .formulario input:focus,
 .formulario select:focus {
-  border-color: #c98b5b;
-  box-shadow: 0 0 0 3px rgba(201,139,91,0.12);
+  border-color: #d39a73;
+  box-shadow: 0 0 0 3px rgba(211, 154, 115, 0.12);
 }
 
 .formulario input::placeholder {
-  color: #999;
+  color: #a99a8d;
 }
 
 .formulario select:disabled {
-  background: #f5f3f0;
-  color: #999;
+  background: #f7f4f0;
+  color: #aaa;
   cursor: not-allowed;
 }
 
 .formulario button {
   width: fit-content;
-  background: #c98b5b;
+  background: #d39a73;
   color: white;
   border: none;
   padding: 12px 25px;
@@ -290,8 +353,7 @@ button:hover {
 }
 
 .formulario button:hover {
-  background: #b87552;
-  opacity: 1;
+  background: #c48762;
   transform: translateY(-1px);
 }
 
@@ -300,16 +362,16 @@ button:hover {
   margin-top: 4px;
   margin-bottom: 0;
   padding: 13px 28px;
-  background: #c98b5b;
+  background: #d39a73;
 }
 
 .formulario button[type="submit"]:hover {
-  background: #b87552;
+  background: #c48762;
 }
 
 .formulario button[type="button"],
 .formulario .botao-cancelar {
-  background: #e0a878;
+  background: #e5b99a;
   margin-top: 0;
   margin-bottom: 5px;
   align-self: center;
@@ -318,22 +380,27 @@ button:hover {
 
 .formulario button[type="button"]:hover,
 .formulario .botao-cancelar:hover {
-  background: #c98b5b;
+  background: #d39a73;
 }
 
 .mensagem-erro {
-  color: #c0392b;
+  color: #c96b5b;
   font-size: 14px;
   text-align: center;
   margin: 2px 0 5px;
 }
+
+
+/* ==========================================
+   TELA DE LOGIN
+========================================== */
 
 .login-container {
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #faf3e8;
+  background: #fdf8f0;
   padding: 20px;
   box-sizing: border-box;
 }
@@ -344,19 +411,19 @@ button:hover {
   border-radius: 30px;
   width: 380px;
   text-align: center;
-  box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+  box-shadow: 0 15px 35px rgba(120, 90, 60, 0.08);
   box-sizing: border-box;
 }
 
 .login-card h1 {
   font-family: "Trebuchet MS", sans-serif;
   font-size: 36px;
-  color: #8b5e3c;
+  color: #a06b48;
   margin: 0 0 8px;
 }
 
 .login-card p {
-  color: #8b7a6d;
+  color: #9a8778;
   font-size: 15px;
   margin-bottom: 30px;
 }
@@ -366,9 +433,9 @@ button:hover {
   padding: 14px 16px;
   margin: 8px 0;
   border-radius: 15px;
-  border: 1px solid #dfd3c7;
-  background: #fffaf5;
-  color: #4a4036;
+  border: 1px solid #e5d8cb;
+  background: #fffdf9;
+  color: #5a4a3d;
   font-family: "Trebuchet MS", sans-serif;
   font-size: 15px;
   box-sizing: border-box;
@@ -376,12 +443,12 @@ button:hover {
 }
 
 .login-card input:focus {
-  border-color: #b87552;
-  box-shadow: 0 0 0 3px rgba(184,117,82,0.12);
+  border-color: #d39a73;
+  box-shadow: 0 0 0 3px rgba(211, 154, 115, 0.12);
 }
 
 .login-card input::placeholder {
-  color: #a39385;
+  color: #ad9d90;
 }
 
 .login-card button {
@@ -390,7 +457,7 @@ button:hover {
   margin-bottom: 0;
   padding: 14px;
   border-radius: 18px;
-  background: #b87552;
+  background: #d39a73;
   color: white;
   border: none;
   font-size: 16px;
@@ -400,11 +467,99 @@ button:hover {
 }
 
 .login-card button:hover {
-  background: #9d6040;
+  background: #c48762;
   transform: translateY(-2px);
 }
 
+
+/* ==========================================
+   ESCOLHA CLIENTE / ADMINISTRADOR
+========================================== */
+
+.escolha-acesso {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.escolha-acesso button {
+  width: 100%;
+  margin: 0;
+  padding: 15px;
+  border-radius: 18px;
+  background: #d39a73;
+  color: white;
+  border: none;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.escolha-acesso button:hover {
+  background: #c48762;
+  transform: translateY(-2px);
+}
+
+
+/* ==========================================
+   CRIAR CONTA
+========================================== */
+
+.criar-conta {
+  margin-top: 25px;
+  text-align: center;
+}
+
+.criar-conta p {
+  margin: 0 0 8px;
+  color: #9a8778;
+  font-size: 14px;
+}
+
+.criar-conta a {
+  color: #c48762;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.criar-conta a:hover {
+  text-decoration: underline;
+}
+
+
+/* ==========================================
+   BOTÃO VOLTAR
+========================================== */
+
+.voltar-acesso {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.voltar-acesso button {
+  background: transparent;
+  color: #c48762;
+  padding: 5px 10px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.voltar-acesso button:hover {
+  background: transparent;
+  color: #a06b48;
+  transform: none;
+}
+
+
+/* ==========================================
+   RESPONSIVIDADE
+========================================== */
+
 @media (max-width: 1100px) {
+
   .home-imagens {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -416,15 +571,27 @@ button:hover {
   .servicos-home-container {
     grid-template-columns: repeat(2, 1fr);
   }
+
 }
 
+
 @media (max-width: 700px) {
+
+  .sidebar {
+    width: 220px;
+    padding: 25px 15px;
+  }
+
   .content {
     padding: 20px;
   }
 
   .welcome-card {
     padding: 30px;
+  }
+
+  .welcome-card h1 {
+    font-size: 32px;
   }
 
   .home-imagens {
@@ -448,4 +615,16 @@ button:hover {
     align-items: flex-start;
     gap: 10px;
   }
+
+  .formulario {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 380px;
+    padding: 35px 25px;
+  }
+
 }

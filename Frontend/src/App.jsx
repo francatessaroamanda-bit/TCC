@@ -8,22 +8,32 @@ import {
 import Sidebar from "./components/Sidebar";
 
 import Home from "./pages/Home";
+import HomeCliente from "./pages/HomeCliente";
+
 import Clientes from "./pages/Clientes";
 import Pets from "./pages/Pets";
+import PetsCliente from "./pages/PetsCliente";
 import Agendamentos from "./pages/Agendamentos";
+import AgendamentosCliente from "./pages/AgendamentosCliente";
 import Servicos from "./pages/Servicos";
-import Login from "./pages/Login";
+
+import Login from "./pages/login";
+import Cadastro from "./pages/Cadastro";
 
 
-// ==========================================
-// ROTA PROTEGIDA
-// ==========================================
+// =========================================
+// PROTEÇÃO DAS ROTAS
+// =========================================
 
 function RotaProtegida({ children }) {
-  const estaLogado =
+
+  const usuarioLogado =
+    sessionStorage.getItem("usuarioLogado") === "true";
+
+  const adminLogado =
     sessionStorage.getItem("adminLogado") === "true";
 
-  if (!estaLogado) {
+  if (!usuarioLogado && !adminLogado) {
     return (
       <Navigate
         to="/login"
@@ -36,11 +46,19 @@ function RotaProtegida({ children }) {
 }
 
 
-// ==========================================
+// =========================================
 // LAYOUT DO SISTEMA
-// ==========================================
+// =========================================
 
 function LayoutProtegido() {
+
+  const usuarioLogado =
+    sessionStorage.getItem("usuarioLogado") === "true";
+
+  const adminLogado =
+    sessionStorage.getItem("adminLogado") === "true";
+
+
   return (
     <div className="layout">
 
@@ -50,29 +68,77 @@ function LayoutProtegido() {
 
         <Routes>
 
+          {/* ==============================
+              HOME
+          ============================== */}
+
           <Route
             path="/"
-            element={<Home />}
+            element={
+              usuarioLogado
+                ? <HomeCliente />
+                : <Home />
+            }
           />
+
+
+          {/* ==============================
+              CLIENTES
+              SOMENTE ADMIN
+          ============================== */}
 
           <Route
             path="/clientes"
-            element={<Clientes />}
+            element={
+              adminLogado
+                ? <Clientes />
+                : <Navigate
+                    to="/"
+                    replace
+                  />
+            }
           />
+
+
+          {/* ==============================
+              PETS
+          ============================== */}
 
           <Route
             path="/pets"
-            element={<Pets />}
+            element={
+              usuarioLogado
+                ? <PetsCliente />
+                : <Pets />
+            }
           />
+
+
+          {/* ==============================
+              AGENDAMENTOS
+          ============================== */}
 
           <Route
             path="/agendamentos"
-            element={<Agendamentos />}
+            element={
+              usuarioLogado
+                ? <AgendamentosCliente />
+                : <Agendamentos />
+            }
           />
+
+
+          {/* ==============================
+              SERVIÇOS
+              ADMIN GERENCIA
+              CLIENTE VISUALIZA
+          ============================== */}
 
           <Route
             path="/servicos"
-            element={<Servicos />}
+            element={
+              <Servicos />
+            }
           />
 
         </Routes>
@@ -84,29 +150,45 @@ function LayoutProtegido() {
 }
 
 
-// ==========================================
+// =========================================
 // APP
-// ==========================================
+// =========================================
 
 function App() {
+
   return (
+
     <BrowserRouter>
 
       <Routes>
 
-        {/* ================================
-            LOGIN
-        ================================= */}
+        {/* ==============================
+            LOGIN ÚNICO
+        ============================== */}
 
         <Route
           path="/login"
-          element={<Login />}
+          element={
+            <Login />
+          }
         />
 
 
-        {/* ================================
-            ÁREA PROTEGIDA
-        ================================= */}
+        {/* ==============================
+            CADASTRO DE CLIENTE
+        ============================== */}
+
+        <Route
+          path="/cadastro"
+          element={
+            <Cadastro />
+          }
+        />
+
+
+        {/* ==============================
+            SISTEMA PROTEGIDO
+        ============================== */}
 
         <Route
           path="/*"
@@ -120,8 +202,8 @@ function App() {
       </Routes>
 
     </BrowserRouter>
+
   );
 }
 
 export default App;
-
