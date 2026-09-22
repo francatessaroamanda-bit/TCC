@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API = "http://localhost:5000/api";
+
 function AgendamentosCliente() {
   const navigate = useNavigate();
 
   const [cliente, setCliente] = useState(null);
   const [pets, setPets] = useState([]);
+  const [servicos, setServicos] = useState([]);
   const [agendamentos, setAgendamentos] = useState([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [editando, setEditando] = useState(null);
   const [mensagemErro, setMensagemErro] = useState("");
 
-  const [novoAgendamento, setNovoAgendamento] = useState({
+  const [form, setForm] = useState({
     pet: "",
     servico: "",
     data: "",
@@ -19,22 +22,8 @@ function AgendamentosCliente() {
   });
 
   const horarios = [
-    "08:00",
-    "09:00",
-    "10:00",
-    "11:00",
-    "12:00",
-    "13:00",
-    "14:00",
-    "15:00",
-    "16:00",
-    "17:00"
-  ];
-
-  const servicos = [
-    "Banho - R$ 50,00",
-    "Tosa - R$ 70,00",
-    "Banho e Tosa - R$ 100,00"
+    "08:00", "09:00", "10:00", "11:00", "12:00",
+    "13:00", "14:00", "15:00", "16:00", "17:00"
   ];
 
   useEffect(() => {
@@ -43,7 +32,8 @@ function AgendamentosCliente() {
 
   async function carregarDados() {
     try {
-      const usuarioSalvo = localStorage.getItem("usuarioCadastrado");
+      const usuarioSalvo =
+        localStorage.getItem("usuarioCadastrado");
 
       if (!usuarioSalvo) {
         navigate("/login", { replace: true });
@@ -52,19 +42,32 @@ function AgendamentosCliente() {
 
       const usuario = JSON.parse(usuarioSalvo);
 
-      const respostaClientes = await fetch(
-        "http://localhost:5000/api/clientes"
-      );
+      const [clientesRes, petsRes, servicosRes, agendamentosRes] =
+        await Promise.all([
+          fetch(`${API}/clientes`),
+          fetch(`${API}/pets`),
+          fetch(`${API}/servicos`),
+          fetch(`${API}/agendamentos`)
+        ]);
 
-      if (!respostaClientes.ok) {
+      if (
+        !clientesRes.ok ||
+        !petsRes.ok ||
+        !servicosRes.ok ||
+        !agendamentosRes.ok
+      ) {
         throw new Error();
       }
 
-      const clientes = await respostaClientes.json();
+      const clientes = await clientesRes.json();
+      const todosPets = await petsRes.json();
+      const servicosBanco = await servicosRes.json();
+      const todosAgendamentos = await agendamentosRes.json();
 
       const clienteEncontrado = clientes.find(
         (item) =>
-          item.email.toLowerCase() === usuario.email.toLowerCase()
+          item.email.toLowerCase() ===
+          usuario.email.toLowerCase()
       );
 
       if (!clienteEncontrado) {
@@ -72,18 +75,6 @@ function AgendamentosCliente() {
         navigate("/cadastro", { replace: true });
         return;
       }
-
-      setCliente(clienteEncontrado);
-
-      const respostaPets = await fetch(
-        "http://localhost:5000/api/pets"
-      );
-
-      if (!respostaPets.ok) {
-        throw new Error();
-      }
-
-      const todosPets = await respostaPets.json();
 
       const meusPets = todosPets.filter((pet) => {
         const dono =
@@ -94,175 +85,121 @@ function AgendamentosCliente() {
         return dono === clienteEncontrado._id;
       });
 
-      setPets(meusPets);
-
-      const respostaAgendamentos = await fetch(
-        "http://localhost:5000/api/agendamentos"
-      );
-
-      if (!respostaAgendamentos.ok) {
-        throw new Error();
-      }
-
-      const todosAgendamentos = await respostaAgendamentos.json();
-
-      const meusAgendamentos = todosAgendamentos.filter(
-        (agendamento) => {
+      const meusAgendamentos =
+        todosAgendamentos.filter((item) => {
           const clienteId =
-            typeof agendamento.cliente === "object"
-              ? agendamento.cliente?._id
-              : agendamento.cliente;
+            typeof item.cliente === "object"
+              ? item.cliente?._id
+              : item.cliente;
 
           return clienteId === clienteEncontrado._id;
-        }
-      );
+        });
 
+      setCliente(clienteEncontrado);
+      setPets(meusPets);
+      setServicos(servicosBanco);
       setAgendamentos(meusAgendamentos);
     } catch (error) {
       console.error(error);
-
       setMensagemErro(
         "Não foi possível carregar seus dados."
       );
     }
   }
 
-  function novoAgendamentoFormulario() {
-    setMensagemErro("");
-    setEditando(null);
-
-    setNovoAgendamento({
-      pet: "",
-      servico: "",
-      data: "",
-      horario: ""
-    });
-
-    setMostrarFormulario(true);
-  }
-
-  function editarAgendamento(agendamento) {
-    setMensagemErro("");
-    setEditando(agendamento._id);
-
-    const petId =
-      typeof agendamento.pet === "object"
-        ? agendamento.pet?._id
-        : agendamento.pet;
-
-    setNovoAgendamento({
-      pet: petId || "",
-      servico: agendamento.servico || "",
-      data: agendamento.data || "",
-      horario: agendamento.horario || ""
-    });
-
-    setMostrarFormulario(true);
-  }
-
   function limparFormulario() {
-    setNovoAgendamento({
+    setForm({
       pet: "",
       servico: "",
       data: "",
       horario: ""
     });
-
-    setMensagemErro("");
     setEditando(null);
     setMostrarFormulario(false);
+    setMensagemErro("");
+  }
+
+  function abrirNovo() {
+    if (pets.length === 0) {
+      setMensagemErro(
+        "Cadastre um pet antes de realizar um agendamento."
+      );
+      return;
+    }
+
+    if (servicos.length === 0) {
+      setMensagemErro(
+        "Nenhum serviço disponível no momento."
+      );
+      return;
+    }
+
+    limparFormulario();
+    setMostrarFormulario(true);
   }
 
   function horarioOcupado(horario) {
-    if (!novoAgendamento.data) {
-      return false;
-    }
-
-    return agendamentos.some((agendamento) => {
-      const mesmoHorario =
-        agendamento.data === novoAgendamento.data &&
-        agendamento.horario === horario;
-
-      const mesmoAgendamento =
-        agendamento._id === editando;
-
-      return mesmoHorario && !mesmoAgendamento;
-    });
+    return agendamentos.some(
+      (item) =>
+        item.data === form.data &&
+        item.horario === horario &&
+        item._id !== editando
+    );
   }
 
-  function horarioPassado(horario) {
-    if (!novoAgendamento.data) {
-      return false;
-    }
+  function horarioPassou(horario) {
+    if (!form.data) return false;
 
-    const hoje = new Date();
-
-    const dataSelecionada = new Date(
-      `${novoAgendamento.data}T${horario}:00`
+    const agora = new Date();
+    const selecionado = new Date(
+      `${form.data}T${horario}:00`
     );
 
-    return dataSelecionada < hoje;
+    return selecionado < agora;
   }
 
-  async function salvarAgendamento(e) {
+  async function salvar(e) {
     e.preventDefault();
 
     setMensagemErro("");
 
     if (
-      !novoAgendamento.pet ||
-      !novoAgendamento.servico ||
-      !novoAgendamento.data ||
-      !novoAgendamento.horario
+      !form.pet ||
+      !form.servico ||
+      !form.data ||
+      !form.horario
     ) {
       setMensagemErro("Preencha todos os campos.");
       return;
     }
 
-    if (!cliente) {
-      setMensagemErro("Cliente não encontrado.");
+    if (horarioOcupado(form.horario)) {
+      setMensagemErro("Esse horário já está ocupado.");
       return;
     }
 
-    if (horarioOcupado(novoAgendamento.horario)) {
-      setMensagemErro(
-        "Este horário já está ocupado. Escolha outro horário."
-      );
-      return;
-    }
-
-    if (horarioPassado(novoAgendamento.horario)) {
-      setMensagemErro(
-        "Este horário já passou. Escolha outro horário."
-      );
+    if (horarioPassou(form.horario)) {
+      setMensagemErro("Esse horário já passou.");
       return;
     }
 
     try {
       const url = editando
-        ? `http://localhost:5000/api/agendamentos/${editando}`
-        : "http://localhost:5000/api/agendamentos";
-
-      const metodo = editando ? "PUT" : "POST";
-
-      const agendamentoAtual = agendamentos.find(
-        (item) => item._id === editando
-      );
+        ? `${API}/agendamentos/${editando}`
+        : `${API}/agendamentos`;
 
       const resposta = await fetch(url, {
-        method: metodo,
+        method: editando ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
           cliente: cliente._id,
-          pet: novoAgendamento.pet,
-          servico: novoAgendamento.servico,
-          data: novoAgendamento.data,
-          horario: novoAgendamento.horario,
-          status: editando
-            ? agendamentoAtual?.status || "Pendente"
-            : "Pendente"
+          pet: form.pet,
+          servico: form.servico,
+          data: form.data,
+          horario: form.horario,
+          status: "Pendente"
         })
       });
 
@@ -271,20 +208,20 @@ function AgendamentosCliente() {
       if (!resposta.ok) {
         setMensagemErro(
           dados.mensagem ||
-            "Não foi possível salvar o agendamento."
+            "Erro ao salvar agendamento."
         );
         return;
       }
 
       if (editando) {
-        setAgendamentos((listaAtual) =>
-          listaAtual.map((item) =>
+        setAgendamentos((lista) =>
+          lista.map((item) =>
             item._id === editando ? dados : item
           )
         );
       } else {
-        setAgendamentos((listaAtual) => [
-          ...listaAtual,
+        setAgendamentos((lista) => [
+          ...lista,
           dados
         ]);
       }
@@ -292,22 +229,34 @@ function AgendamentosCliente() {
       limparFormulario();
     } catch (error) {
       console.error(error);
-
-      setMensagemErro(
-        "Erro ao conectar com o servidor."
-      );
+      setMensagemErro("Erro ao conectar com o servidor.");
     }
   }
 
-  async function excluirAgendamento(id) {
-    setMensagemErro("");
+  function editar(agendamento) {
+    const pet =
+      typeof agendamento.pet === "object"
+        ? agendamento.pet?._id
+        : agendamento.pet;
 
+    setEditando(agendamento._id);
+
+    setForm({
+      pet: pet || "",
+      servico: agendamento.servico || "",
+      data: agendamento.data || "",
+      horario: agendamento.horario || ""
+    });
+
+    setMensagemErro("");
+    setMostrarFormulario(true);
+  }
+
+  async function excluir(id) {
     try {
       const resposta = await fetch(
-        `http://localhost:5000/api/agendamentos/${id}`,
-        {
-          method: "DELETE"
-        }
+        `${API}/agendamentos/${id}`,
+        { method: "DELETE" }
       );
 
       const dados = await resposta.json();
@@ -315,22 +264,17 @@ function AgendamentosCliente() {
       if (!resposta.ok) {
         setMensagemErro(
           dados.mensagem ||
-            "Não foi possível excluir o agendamento."
+            "Erro ao excluir agendamento."
         );
         return;
       }
 
-      setAgendamentos((listaAtual) =>
-        listaAtual.filter(
-          (item) => item._id !== id
-        )
+      setAgendamentos((lista) =>
+        lista.filter((item) => item._id !== id)
       );
     } catch (error) {
       console.error(error);
-
-      setMensagemErro(
-        "Erro ao conectar com o servidor."
-      );
+      setMensagemErro("Erro ao conectar com o servidor.");
     }
   }
 
@@ -339,68 +283,55 @@ function AgendamentosCliente() {
       <div className="titulo-clientes">
         <h1>Meus Agendamentos</h1>
 
-        <button onClick={novoAgendamentoFormulario}>
+        <button onClick={abrirNovo}>
           + Novo Agendamento
         </button>
       </div>
 
       {mensagemErro && (
-        <p className="mensagem-erro">
-          {mensagemErro}
-        </p>
+        <p className="mensagem-erro">{mensagemErro}</p>
       )}
 
       {mostrarFormulario && (
-        <form
-          className="formulario"
-          onSubmit={salvarAgendamento}
-        >
+        <form className="formulario" onSubmit={salvar}>
           <select
-            value={novoAgendamento.pet}
-            onChange={(e) => {
-              setMensagemErro("");
-
-              setNovoAgendamento({
-                ...novoAgendamento,
+            value={form.pet}
+            onChange={(e) =>
+              setForm({
+                ...form,
                 pet: e.target.value
-              });
-            }}
+              })
+            }
           >
-            <option value="">
-              Selecione seu pet
-            </option>
+            <option value="">Selecione seu pet</option>
 
             {pets.map((pet) => (
-              <option
-                key={pet._id}
-                value={pet._id}
-              >
+              <option key={pet._id} value={pet._id}>
                 {pet.nome}
               </option>
             ))}
           </select>
 
           <select
-            value={novoAgendamento.servico}
-            onChange={(e) => {
-              setMensagemErro("");
-
-              setNovoAgendamento({
-                ...novoAgendamento,
+            value={form.servico}
+            onChange={(e) =>
+              setForm({
+                ...form,
                 servico: e.target.value
-              });
-            }}
+              })
+            }
           >
-            <option value="">
-              Selecione o serviço
-            </option>
+            <option value="">Selecione o serviço</option>
 
             {servicos.map((servico) => (
               <option
-                key={servico}
-                value={servico}
+                key={servico._id}
+                value={servico.nome}
               >
-                {servico}
+                {servico.nome} - R${" "}
+                {Number(servico.preco)
+                  .toFixed(2)
+                  .replace(".", ",")}
               </option>
             ))}
           </select>
@@ -412,51 +343,41 @@ function AgendamentosCliente() {
                 .toISOString()
                 .split("T")[0]
             }
-            value={novoAgendamento.data}
-            onChange={(e) => {
-              setMensagemErro("");
-
-              setNovoAgendamento({
-                ...novoAgendamento,
+            value={form.data}
+            onChange={(e) =>
+              setForm({
+                ...form,
                 data: e.target.value,
                 horario: ""
-              });
-            }}
+              })
+            }
           />
 
           <select
-            value={novoAgendamento.horario}
-            onChange={(e) => {
-              setMensagemErro("");
-
-              setNovoAgendamento({
-                ...novoAgendamento,
+            value={form.horario}
+            disabled={!form.data}
+            onChange={(e) =>
+              setForm({
+                ...form,
                 horario: e.target.value
-              });
-            }}
-            disabled={!novoAgendamento.data}
+              })
+            }
           >
             <option value="">
               Selecione o horário
             </option>
 
             {horarios.map((horario) => {
-              const ocupado =
-                horarioOcupado(horario);
-
-              const passado =
-                horarioPassado(horario);
+              const ocupado = horarioOcupado(horario);
+              const passado = horarioPassou(horario);
 
               return (
                 <option
                   key={horario}
                   value={horario}
-                  disabled={
-                    ocupado || passado
-                  }
+                  disabled={ocupado || passado}
                 >
                   {horario}
-
                   {ocupado
                     ? " - Ocupado"
                     : passado
@@ -469,13 +390,12 @@ function AgendamentosCliente() {
 
           <button type="submit">
             {editando
-              ? "Salvar alterações"
+              ? "Salvar Alterações"
               : "Agendar"}
           </button>
 
           <button
             type="button"
-            className="botao-cancelar"
             onClick={limparFormulario}
           >
             Cancelar
@@ -485,13 +405,9 @@ function AgendamentosCliente() {
 
       {agendamentos.length === 0 ? (
         <div className="cliente-vazio">
-          <p>
-            Você ainda não possui agendamentos.
-          </p>
-
+          <p>Você ainda não possui agendamentos.</p>
           <small>
-            Clique em "+ Novo Agendamento" para
-            marcar um horário.
+            Clique em "+ Novo Agendamento" para marcar um horário.
           </small>
         </div>
       ) : (
@@ -507,9 +423,7 @@ function AgendamentosCliente() {
                 className="pet-card"
                 key={agendamento._id}
               >
-                <h2>
-                  {pet?.nome || "Pet"}
-                </h2>
+                <h2>{pet?.nome || "Pet"}</h2>
 
                 <p>
                   <span className="info-label">
@@ -539,30 +453,22 @@ function AgendamentosCliente() {
                   {agendamento.status}
                 </p>
 
-                <div className="acoes">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      editarAgendamento(
-                        agendamento
-                      )
-                    }
-                  >
-                    Editar
-                  </button>
+                <button
+                  onClick={() =>
+                    editar(agendamento)
+                  }
+                >
+                  Editar
+                </button>
 
-                  <button
-                    type="button"
-                    className="botao-excluir"
-                    onClick={() =>
-                      excluirAgendamento(
-                        agendamento._id
-                      )
-                    }
-                  >
-                    Excluir
-                  </button>
-                </div>
+                <button
+                  className="botao-excluir"
+                  onClick={() =>
+                    excluir(agendamento._id)
+                  }
+                >
+                  Excluir
+                </button>
               </div>
             );
           })}

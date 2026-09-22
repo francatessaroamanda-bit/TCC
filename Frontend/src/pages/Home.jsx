@@ -1,4 +1,32 @@
+import { useEffect, useState } from "react";
+
 function Home() {
+  const [servicos, setServicos] = useState([]);
+  const [mensagemErro, setMensagemErro] = useState("");
+
+  useEffect(() => {
+    buscarServicos();
+  }, []);
+
+  async function buscarServicos() {
+    try {
+      const resposta = await fetch(
+        "http://localhost:5000/api/servicos"
+      );
+
+      if (!resposta.ok) {
+        throw new Error();
+      }
+
+      setServicos(await resposta.json());
+    } catch (error) {
+      console.error(error);
+      setMensagemErro(
+        "Não foi possível carregar os serviços."
+      );
+    }
+  }
+
   return (
     <div className="home-container">
 
@@ -7,7 +35,8 @@ function Home() {
           <h1>Bem-vindos ao Mundo Pet</h1>
 
           <p>
-            Cuidando dos seus melhores amigos com carinho e dedicação.
+            Cuidando dos seus melhores amigos
+            com carinho e dedicação.
           </p>
         </div>
       </div>
@@ -44,49 +73,38 @@ function Home() {
 
       </div>
 
-
-      {/* =========================
-          NOSSOS SERVIÇOS
-      ========================= */}
-
       <section className="home-servicos">
-
         <h2>Nossos serviços</h2>
 
+        {mensagemErro && (
+          <p className="mensagem-erro">
+            {mensagemErro}
+          </p>
+        )}
+
         <div className="servicos-home-container">
+          {servicos.length === 0 ? (
+            <p>Nenhum serviço cadastrado.</p>
+          ) : (
+            servicos.map((servico) => (
+              <div
+                className="servico-home-card"
+                key={servico._id}
+              >
+                <h3>{servico.nome}</h3>
 
-          <div className="servico-home-card">
-            <h3>Banho</h3>
+                <p>{servico.descricao}</p>
 
-            <p>
-              Banho completo para o pet.
-            </p>
-
-            <strong>R$ 50,00</strong>
-          </div>
-
-          <div className="servico-home-card">
-            <h3>Tosa</h3>
-
-            <p>
-              Tosa completa para deixar seu pet bem cuidado.
-            </p>
-
-            <strong>R$ 70,00</strong>
-          </div>
-
-          <div className="servico-home-card">
-            <h3>Banho e Tosa</h3>
-
-            <p>
-              Banho e tosa completa para o pet.
-            </p>
-
-            <strong>R$ 100,00</strong>
-          </div>
-
+                <strong>
+                  R${" "}
+                  {Number(servico.preco)
+                    .toFixed(2)
+                    .replace(".", ",")}
+                </strong>
+              </div>
+            ))
+          )}
         </div>
-
       </section>
 
     </div>
