@@ -8,23 +8,34 @@ function Login() {
   const [senha, setSenha] = useState("");
   const [mensagemErro, setMensagemErro] = useState("");
 
-  function entrar(e) {
+  async function entrar(e) {
     e.preventDefault();
 
     setMensagemErro("");
 
-    if (!email.trim() || !senha.trim()) {
+    const emailDigitado = email.trim().toLowerCase();
+
+    if (!emailDigitado || !senha.trim()) {
       setMensagemErro("Preencha todos os campos.");
       return;
     }
 
+    // ==========================================
     // LOGIN DO ADMINISTRADOR
+    // ==========================================
+
     if (
-      email.trim().toLowerCase() === "admin@admin.com" &&
+      emailDigitado === "admin@admin.com" &&
       senha === "1234"
     ) {
-      sessionStorage.setItem("adminLogado", "true");
-      sessionStorage.removeItem("usuarioLogado");
+      sessionStorage.setItem(
+        "adminLogado",
+        "true"
+      );
+
+      sessionStorage.removeItem(
+        "usuarioLogado"
+      );
 
       navigate("/", {
         replace: true
@@ -33,30 +44,94 @@ function Login() {
       return;
     }
 
+    // ==========================================
     // LOGIN DO CLIENTE
+    // ==========================================
+
     const usuarioSalvo =
-      localStorage.getItem("usuarioCadastrado");
+      localStorage.getItem(
+        "usuarioCadastrado"
+      );
 
     if (!usuarioSalvo) {
       setMensagemErro(
         "Conta não encontrada. Crie sua conta primeiro."
       );
+
       return;
     }
 
     try {
-      const usuario = JSON.parse(usuarioSalvo);
+      const usuario =
+        JSON.parse(usuarioSalvo);
+
+      // ========================================
+      // VERIFICAR SE O CLIENTE AINDA EXISTE
+      // NO MONGODB
+      // ========================================
+
+      const respostaClientes =
+        await fetch(
+          "http://localhost:5000/api/clientes"
+        );
+
+      if (!respostaClientes.ok) {
+        setMensagemErro(
+          "Não foi possível verificar sua conta."
+        );
+
+        return;
+      }
+
+      const clientes =
+        await respostaClientes.json();
+
+      const clienteEncontrado =
+        clientes.find(
+          (cliente) =>
+            cliente.email.toLowerCase() ===
+            emailDigitado
+        );
+
+      // ========================================
+      // CLIENTE FOI EXCLUÍDO PELO ADMIN
+      // ========================================
+
+      if (!clienteEncontrado) {
+        localStorage.removeItem(
+          "usuarioCadastrado"
+        );
+
+        sessionStorage.removeItem(
+          "usuarioLogado"
+        );
+
+        setMensagemErro(
+          "Esta conta não está mais cadastrada. Crie uma nova conta."
+        );
+
+        return;
+      }
+
+      // ========================================
+      // VERIFICAR SENHA
+      // ========================================
 
       if (
         usuario.email.toLowerCase() !==
-          email.trim().toLowerCase() ||
+          emailDigitado ||
         usuario.senha !== senha
       ) {
         setMensagemErro(
           "E-mail ou senha incorretos."
         );
+
         return;
       }
+
+      // ========================================
+      // LOGIN REALIZADO
+      // ========================================
 
       sessionStorage.setItem(
         "usuarioLogado",
@@ -70,7 +145,6 @@ function Login() {
       navigate("/", {
         replace: true
       });
-
     } catch (error) {
       console.error(error);
 
@@ -82,9 +156,7 @@ function Login() {
 
   return (
     <div className="login-container">
-
       <div className="login-card">
-
         <h1>Mundo Pet</h1>
 
         <p>
@@ -92,7 +164,6 @@ function Login() {
         </p>
 
         <form onSubmit={entrar}>
-
           <input
             type="email"
             placeholder="E-mail"
@@ -122,11 +193,9 @@ function Login() {
           <button type="submit">
             Entrar
           </button>
-
         </form>
 
         <div className="criar-conta">
-
           <p>
             Não possui uma conta?
           </p>
@@ -134,11 +203,8 @@ function Login() {
           <Link to="/cadastro">
             Criar conta
           </Link>
-
         </div>
-
       </div>
-
     </div>
   );
 }

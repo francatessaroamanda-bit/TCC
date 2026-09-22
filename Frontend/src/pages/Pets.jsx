@@ -5,6 +5,8 @@ function Pets() {
   const [clientes, setClientes] = useState([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [editando, setEditando] = useState(null);
+  const [mensagemErro, setMensagemErro] = useState("");
+
   const [novoPet, setNovoPet] = useState({
     nome: "",
     especie: "",
@@ -19,23 +21,41 @@ function Pets() {
 
   async function buscarPets() {
     try {
-      const resposta = await fetch("http://localhost:5000/api/pets");
-      if (!resposta.ok) throw new Error();
+      const resposta = await fetch(
+        "http://localhost:5000/api/pets"
+      );
+
+      if (!resposta.ok) {
+        throw new Error();
+      }
+
       setPets(await resposta.json());
     } catch (error) {
       console.error(error);
-      alert("Não foi possível carregar os pets.");
+
+      setMensagemErro(
+        "Não foi possível carregar os pets."
+      );
     }
   }
 
   async function buscarClientes() {
     try {
-      const resposta = await fetch("http://localhost:5000/api/clientes");
-      if (!resposta.ok) throw new Error();
+      const resposta = await fetch(
+        "http://localhost:5000/api/clientes"
+      );
+
+      if (!resposta.ok) {
+        throw new Error();
+      }
+
       setClientes(await resposta.json());
     } catch (error) {
       console.error(error);
-      alert("Não foi possível carregar os clientes.");
+
+      setMensagemErro(
+        "Não foi possível carregar os clientes."
+      );
     }
   }
 
@@ -46,41 +66,52 @@ function Pets() {
       raca: "",
       dono: ""
     });
+
+    setMensagemErro("");
     setEditando(null);
     setMostrarFormulario(false);
   }
 
   function novoCadastro() {
+    setMensagemErro("");
+
     if (clientes.length === 0) {
-      alert(
+      setMensagemErro(
         "Não existem clientes cadastrados. Cadastre um cliente antes de cadastrar um pet."
       );
       return;
     }
 
     setEditando(null);
+
     setNovoPet({
       nome: "",
       especie: "",
       raca: "",
       dono: ""
     });
+
     setMostrarFormulario(true);
   }
 
   function editarPet(pet) {
+    setMensagemErro("");
     setEditando(pet._id);
+
     setNovoPet({
       nome: pet.nome || "",
       especie: pet.especie || "",
       raca: pet.raca || "",
       dono: pet.dono?._id || pet.dono || ""
     });
+
     setMostrarFormulario(true);
   }
 
   async function salvarPet(e) {
     e.preventDefault();
+
+    setMensagemErro("");
 
     if (
       !novoPet.nome.trim() ||
@@ -88,37 +119,57 @@ function Pets() {
       !novoPet.raca.trim() ||
       !novoPet.dono
     ) {
-      alert("Preencha todos os campos.");
+      setMensagemErro(
+        "Preencha todos os campos."
+      );
+
       return;
     }
 
-    const editandoPet = editando !== null;
+    const editandoPet =
+      editando !== null;
+
     const url = editandoPet
       ? `http://localhost:5000/api/pets/${editando}`
       : "http://localhost:5000/api/pets";
 
     try {
-      const resposta = await fetch(url, {
-        method: editandoPet ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(novoPet)
-      });
+      const resposta = await fetch(
+        url,
+        {
+          method: editandoPet
+            ? "PUT"
+            : "POST",
 
-      const dados = await resposta.json();
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify(
+            novoPet
+          )
+        }
+      );
+
+      const dados =
+        await resposta.json();
 
       if (!resposta.ok) {
-        alert(
-          dados.mensagem || "Erro ao salvar pet."
+        setMensagemErro(
+          dados.mensagem ||
+            "Erro ao salvar pet."
         );
+
         return;
       }
 
       if (editandoPet) {
         setPets((listaAtual) =>
           listaAtual.map((pet) =>
-            pet._id === editando ? dados : pet
+            pet._id === editando
+              ? dados
+              : pet
           )
         );
       } else {
@@ -131,14 +182,15 @@ function Pets() {
       limparFormulario();
     } catch (error) {
       console.error(error);
-      alert("Erro ao conectar com o servidor.");
+
+      setMensagemErro(
+        "Erro ao conectar com o servidor."
+      );
     }
   }
 
   async function removerPet(id) {
-    if (!window.confirm("Deseja remover este pet?")) {
-      return;
-    }
+    setMensagemErro("");
 
     try {
       const resposta = await fetch(
@@ -148,33 +200,52 @@ function Pets() {
         }
       );
 
-      const dados = await resposta.json();
+      const dados =
+        await resposta.json();
 
       if (!resposta.ok) {
-        alert(
-          dados.mensagem || "Erro ao remover pet."
+        setMensagemErro(
+          dados.mensagem ||
+            "Erro ao remover pet."
         );
+
         return;
       }
 
       setPets((listaAtual) =>
-        listaAtual.filter((pet) => pet._id !== id)
+        listaAtual.filter(
+          (pet) =>
+            pet._id !== id
+        )
       );
     } catch (error) {
       console.error(error);
-      alert("Erro ao conectar com o servidor.");
+
+      setMensagemErro(
+        "Erro ao conectar com o servidor."
+      );
     }
   }
 
   return (
     <div>
       <div className="titulo-clientes">
-        <h1>Pets cadastrados</h1>
+        <h1>
+          Pets cadastrados
+        </h1>
 
-        <button onClick={novoCadastro}>
+        <button
+          onClick={novoCadastro}
+        >
           + Novo Pet
         </button>
       </div>
+
+      {mensagemErro && (
+        <p className="mensagem-erro">
+          {mensagemErro}
+        </p>
+      )}
 
       {mostrarFormulario && (
         <form
@@ -185,46 +256,54 @@ function Pets() {
             type="text"
             placeholder="Nome do pet"
             value={novoPet.nome}
-            onChange={(e) =>
+            onChange={(e) => {
+              setMensagemErro("");
+
               setNovoPet({
                 ...novoPet,
                 nome: e.target.value
-              })
-            }
+              });
+            }}
           />
 
           <input
             type="text"
             placeholder="Espécie"
             value={novoPet.especie}
-            onChange={(e) =>
+            onChange={(e) => {
+              setMensagemErro("");
+
               setNovoPet({
                 ...novoPet,
                 especie: e.target.value
-              })
-            }
+              });
+            }}
           />
 
           <input
             type="text"
             placeholder="Raça"
             value={novoPet.raca}
-            onChange={(e) =>
+            onChange={(e) => {
+              setMensagemErro("");
+
               setNovoPet({
                 ...novoPet,
                 raca: e.target.value
-              })
-            }
+              });
+            }}
           />
 
           <select
             value={novoPet.dono}
-            onChange={(e) =>
+            onChange={(e) => {
+              setMensagemErro("");
+
               setNovoPet({
                 ...novoPet,
                 dono: e.target.value
-              })
-            }
+              });
+            }}
           >
             <option value="">
               Selecione o cliente
@@ -261,7 +340,9 @@ function Pets() {
             className="pet-card"
             key={pet._id}
           >
-            <h2>{pet.nome}</h2>
+            <h2>
+              {pet.nome}
+            </h2>
 
             <p>
               <span className="info-label">
@@ -287,14 +368,18 @@ function Pets() {
 
             <button
               className="botao-card"
-              onClick={() => editarPet(pet)}
+              onClick={() =>
+                editarPet(pet)
+              }
             >
               Editar
             </button>
 
             <button
               className="botao-card"
-              onClick={() => removerPet(pet._id)}
+              onClick={() =>
+                removerPet(pet._id)
+              }
             >
               Remover
             </button>

@@ -1,25 +1,30 @@
+// Importa o Mongoose para trabalhar com o MongoDB
 const mongoose = require("mongoose");
 
+// Importa os modelos usados pelo agendamento.
 const Agendamento = require("../models/Agendamento");
 const Cliente = require("../models/Cliente");
 const Pet = require("../models/Pet");
 
 
-// =====================================
+// =====================================================
 // LISTAR AGENDAMENTOS
-// =====================================
-
+// =====================================================
 async function listarAgendamentos(req, res) {
   try {
     const agendamentos = await Agendamento.find()
+      // O populate transforma o ID do cliente nos dados do cliente, mostrando o nome.
       .populate("cliente", "nome")
+
+      // Traz os dados do pet relacionado ao agendamento.
       .populate("pet", "nome especie raca dono")
+
+      // Ordena primeiro pela data e depois pelo horário.
       .sort({ data: 1, horario: 1 });
 
-    res.json(agendamentos);
+    res.status(200).json(agendamentos);
 
   } catch (error) {
-
     console.error("Erro ao listar agendamentos:", error);
 
     res.status(500).json({
@@ -29,13 +34,12 @@ async function listarAgendamentos(req, res) {
 }
 
 
-// =====================================
+// =====================================================
 // CADASTRAR AGENDAMENTO
-// =====================================
-
+// Faz as validações antes de salvar o agendamento.
+// =====================================================
 async function cadastrarAgendamento(req, res) {
   try {
-
     const {
       cliente,
       pet,
@@ -46,10 +50,7 @@ async function cadastrarAgendamento(req, res) {
     } = req.body;
 
 
-    // =====================================
-    // VERIFICAR CAMPOS
-    // =====================================
-
+    // Verifica se os campos obrigatórios foram preenchidos.
     if (!cliente || !pet || !servico || !data || !horario) {
       return res.status(400).json({
         mensagem: "Preencha todos os campos."
@@ -57,16 +58,15 @@ async function cadastrarAgendamento(req, res) {
     }
 
 
-    // =====================================
-    // VERIFICAR IDs
-    // =====================================
-
+    // Verifica se o ID do cliente é válido no formato do MongoDB.
     if (!mongoose.Types.ObjectId.isValid(cliente)) {
       return res.status(400).json({
         mensagem: "Cliente inválido."
       });
     }
 
+
+    // Verifica se o ID do pet é válido.
     if (!mongoose.Types.ObjectId.isValid(pet)) {
       return res.status(400).json({
         mensagem: "Pet inválido."
@@ -74,104 +74,109 @@ async function cadastrarAgendamento(req, res) {
     }
 
 
-    // =====================================
-    // VERIFICAR SE O CLIENTE EXISTE
-    // =====================================
+    // Procura o cliente no banco.
+    const clienteEncontrado =
+      await Cliente.findById(cliente);
 
-    const clienteEncontrado = await Cliente.findById(cliente);
 
+    // Impede o agendamento caso o cliente não exista.
     if (!clienteEncontrado) {
       return res.status(404).json({
-        mensagem: "O cliente informado não está cadastrado."
+        mensagem:
+          "O cliente informado não está cadastrado."
       });
     }
 
 
-    // =====================================
-    // VERIFICAR SE O PET EXISTE
-    // =====================================
+    // Procura o pet no banco.
+    const petEncontrado =
+      await Pet.findById(pet);
 
-    const petEncontrado = await Pet.findById(pet);
 
+    // Impede o agendamento caso o pet não exista.
     if (!petEncontrado) {
       return res.status(404).json({
-        mensagem: "O pet informado não está cadastrado."
+        mensagem:
+          "O pet informado não está cadastrado."
       });
     }
 
 
-    // =====================================
-    // VERIFICAR SE O PET PERTENCE AO CLIENTE
-    // =====================================
-
-    if (petEncontrado.dono.toString() !== cliente) {
+    // REGRA DE NEGÓCIO IMPORTANTE:
+    // verifica se o pet realmente pertence ao cliente selecionado.
+    if (
+      petEncontrado.dono.toString() !==
+      cliente.toString()
+    ) {
       return res.status(400).json({
-        mensagem: "Este pet não pertence ao cliente selecionado."
+        mensagem:
+          "Este pet não pertence ao cliente selecionado."
       });
     }
 
 
-    // =====================================
-    // VERIFICAR HORÁRIO OCUPADO
-    // =====================================
-
-    const horarioOcupado = await Agendamento.findOne({
-      data: data,
-      horario: horario
-    });
+    // Verifica se já existe outro agendamento na mesma data e horário.
+    const horarioOcupado =
+      await Agendamento.findOne({
+        data,
+        horario
+      });
 
 
+    // Impede dois agendamentos no mesmo horário.
     if (horarioOcupado) {
       return res.status(409).json({
-        mensagem: "Este horário já está ocupado. Escolha outro horário."
+        mensagem:
+          "Este horário já está ocupado. Escolha outro horário."
       });
     }
 
 
-    // =====================================
-    // CRIAR AGENDAMENTO
-    // =====================================
-
-    const novoAgendamento = await Agendamento.create({
-      cliente,
-      pet,
-      servico,
-      data,
-      horario,
-      status: status || "Pendente"
-    });
+    // Depois de todas as validações, o agendamento é salvo no MongoDB.
+    const novoAgendamento =
+      await Agendamento.create({
+        cliente,
+        pet,
+        servico,
+        data,
+        horario,
+        status: status || "Pendente"
+      });
 
 
-    // =====================================
-    // RETORNAR AGENDAMENTO COMPLETO
-    // =====================================
-
+    // Busca novamente o registro para devolver os dados completos ao frontend.
     const agendamentoCompleto =
-      await Agendamento.findById(novoAgendamento._id)
+      await Agendamento.findById(
+        novoAgendamento._id
+      )
         .populate("cliente", "nome")
         .populate("pet", "nome especie raca dono");
 
 
-    res.status(201).json(agendamentoCompleto);
+    res.status(201).json(
+      agendamentoCompleto
+    );
 
   } catch (error) {
-
-    console.error("Erro ao cadastrar agendamento:", error);
+    console.error(
+      "Erro ao cadastrar agendamento:",
+      error
+    );
 
     res.status(500).json({
-      mensagem: "Erro ao cadastrar agendamento."
+      mensagem:
+        "Erro ao cadastrar agendamento."
     });
   }
 }
 
 
-// =====================================
+// =====================================================
 // EDITAR AGENDAMENTO
-// =====================================
-
+// Atualiza um agendamento existente, repetindo as principais validações para manter as regras do sistema.
+// =====================================================
 async function editarAgendamento(req, res) {
   try {
-
     const { id } = req.params;
 
     const {
@@ -184,10 +189,7 @@ async function editarAgendamento(req, res) {
     } = req.body;
 
 
-    // =====================================
-    // VERIFICAR CAMPOS
-    // =====================================
-
+    // Verifica os campos obrigatórios.
     if (!cliente || !pet || !servico || !data || !horario) {
       return res.status(400).json({
         mensagem: "Preencha todos os campos."
@@ -195,9 +197,12 @@ async function editarAgendamento(req, res) {
     }
 
 
-    // =====================================
-    // VERIFICAR IDs
-    // =====================================
+    // Valida os IDs recebidos.
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        mensagem: "Agendamento inválido."
+      });
+    }
 
     if (!mongoose.Types.ObjectId.isValid(cliente)) {
       return res.status(400).json({
@@ -212,65 +217,85 @@ async function editarAgendamento(req, res) {
     }
 
 
-    // =====================================
-    // VERIFICAR SE O CLIENTE EXISTE
-    // =====================================
+    // Procura o agendamento que será editado.
+    const agendamentoExistente =
+      await Agendamento.findById(id);
 
-    const clienteEncontrado = await Cliente.findById(cliente);
+
+    if (!agendamentoExistente) {
+      return res.status(404).json({
+        mensagem:
+          "Agendamento não encontrado."
+      });
+    }
+
+
+    // Garante que o agendamento continue pertencendo ao mesmo cliente.
+    if (
+      agendamentoExistente.cliente.toString() !==
+      cliente.toString()
+    ) {
+      return res.status(403).json({
+        mensagem:
+          "Você não pode editar este agendamento."
+      });
+    }
+
+
+    // Confirma que o cliente existe.
+    const clienteEncontrado =
+      await Cliente.findById(cliente);
 
     if (!clienteEncontrado) {
       return res.status(404).json({
-        mensagem: "O cliente informado não está cadastrado."
+        mensagem:
+          "O cliente informado não está cadastrado."
       });
     }
 
 
-    // =====================================
-    // VERIFICAR SE O PET EXISTE
-    // =====================================
-
-    const petEncontrado = await Pet.findById(pet);
+    // Confirma que o pet existe.
+    const petEncontrado =
+      await Pet.findById(pet);
 
     if (!petEncontrado) {
       return res.status(404).json({
-        mensagem: "O pet informado não está cadastrado."
+        mensagem:
+          "O pet informado não está cadastrado."
       });
     }
 
 
-    // =====================================
-    // VERIFICAR SE O PET PERTENCE AO CLIENTE
-    // =====================================
-
-    if (petEncontrado.dono.toString() !== cliente) {
+    // Garante que o pet pertence ao cliente selecionado.
+    if (
+      petEncontrado.dono.toString() !==
+      cliente.toString()
+    ) {
       return res.status(400).json({
-        mensagem: "Este pet não pertence ao cliente selecionado."
+        mensagem:
+          "Este pet não pertence ao cliente selecionado."
       });
     }
 
 
-    // =====================================
-    // VERIFICAR HORÁRIO OCUPADO
-    // =====================================
-
-    const horarioOcupado = await Agendamento.findOne({
-      data: data,
-      horario: horario,
-      _id: { $ne: id }
-    });
+    // Verifica se o novo horário já está ocupado.
+    const horarioOcupado =
+      await Agendamento.findOne({
+        data,
+        horario,
+        _id: { $ne: id }
+      });
 
 
     if (horarioOcupado) {
       return res.status(409).json({
-        mensagem: "Este horário já está ocupado. Escolha outro horário."
+        mensagem:
+          "Este horário já está ocupado. Escolha outro horário."
       });
     }
 
 
-    // =====================================
-    // ATUALIZAR AGENDAMENTO
-    // =====================================
-
+    // Atualiza o agendamento no MongoDB.
     const agendamentoAtualizado =
       await Agendamento.findByIdAndUpdate(
         id,
@@ -289,72 +314,84 @@ async function editarAgendamento(req, res) {
       );
 
 
-    if (!agendamentoAtualizado) {
-      return res.status(404).json({
-        mensagem: "Agendamento não encontrado."
-      });
-    }
-
-
-    // =====================================
-    // RETORNAR AGENDAMENTO COMPLETO
-    // =====================================
-
+    // Busca os dados completos depois da alteração.
     const agendamentoCompleto =
-      await Agendamento.findById(agendamentoAtualizado._id)
+      await Agendamento.findById(
+        agendamentoAtualizado._id
+      )
         .populate("cliente", "nome")
         .populate("pet", "nome especie raca dono");
 
 
-    res.json(agendamentoCompleto);
+    res.status(200).json(
+      agendamentoCompleto
+    );
 
   } catch (error) {
-
-    console.error("Erro ao editar agendamento:", error);
+    console.error(
+      "Erro ao editar agendamento:",
+      error
+    );
 
     res.status(500).json({
-      mensagem: "Erro ao editar agendamento."
+      mensagem:
+        "Erro ao editar agendamento."
     });
   }
 }
 
 
-// =====================================
+// =====================================================
 // REMOVER AGENDAMENTO
-// =====================================
-
+// Exclui o agendamento do MongoDB pelo ID.
+// =====================================================
 async function removerAgendamento(req, res) {
-
   try {
-
     const { id } = req.params;
 
+
+    // Verifica se o ID é válido.
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        mensagem:
+          "Agendamento inválido."
+      });
+    }
+
+
+    // Procura o agendamento e remove do banco.
     const agendamentoRemovido =
       await Agendamento.findByIdAndDelete(id);
 
 
     if (!agendamentoRemovido) {
       return res.status(404).json({
-        mensagem: "Agendamento não encontrado."
+        mensagem:
+          "Agendamento não encontrado."
       });
     }
 
 
-    res.json({
-      mensagem: "Agendamento removido com sucesso."
+    res.status(200).json({
+      mensagem:
+        "Agendamento removido com sucesso."
     });
 
   } catch (error) {
-
-    console.error("Erro ao remover agendamento:", error);
+    console.error(
+      "Erro ao remover agendamento:",
+      error
+    );
 
     res.status(500).json({
-      mensagem: "Erro ao remover agendamento."
+      mensagem:
+        "Erro ao remover agendamento."
     });
   }
 }
 
 
+// Exporta as funções para serem utilizadas nas rotas do sistema.
 module.exports = {
   listarAgendamentos,
   cadastrarAgendamento,

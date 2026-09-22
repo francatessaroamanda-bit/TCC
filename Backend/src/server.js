@@ -8,7 +8,7 @@ require("dotenv").config();
 
 const conectarBanco = require("./config/database");
 
-const clienteRoutes = require("./routes/clienteRoutes");
+const clienteRoutes = require("./routes/ClienteRoutes");
 const petRoutes = require("./routes/petRoutes");
 const agendamentoRoutes = require("./routes/agendamentoRoutes");
 

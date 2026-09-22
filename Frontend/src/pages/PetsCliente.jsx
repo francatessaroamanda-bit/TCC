@@ -21,7 +21,6 @@ function PetsCliente() {
     raca: ""
   });
 
-
   // ==========================================
   // CARREGAR DADOS
   // ==========================================
@@ -30,10 +29,8 @@ function PetsCliente() {
     carregarDados();
   }, []);
 
-
   async function carregarDados() {
     try {
-
       const usuarioSalvo =
         localStorage.getItem("usuarioCadastrado");
 
@@ -45,7 +42,6 @@ function PetsCliente() {
       }
 
       const usuario = JSON.parse(usuarioSalvo);
-
 
       // ========================================
       // BUSCAR CLIENTE
@@ -62,24 +58,19 @@ function PetsCliente() {
       const clientes =
         await respostaClientes.json();
 
-
       const clienteEncontrado = clientes.find(
         (item) =>
           item.email.toLowerCase() ===
           usuario.email.toLowerCase()
       );
 
-
       if (!clienteEncontrado) {
-        setMensagemErro(
-          "Seu cadastro ainda não foi encontrado no sistema."
-        );
-        return;
+          localStorage.removeItem("usuarioCadastrado");
+          navigate("/cadastro", { replace: true });
+          return;
       }
 
-
       setCliente(clienteEncontrado);
-
 
       // ========================================
       // BUSCAR PETS
@@ -96,39 +87,30 @@ function PetsCliente() {
       const todosPets =
         await respostaPets.json();
 
-
       const meusPets = todosPets.filter((pet) => {
-
         const dono =
           typeof pet.dono === "object"
             ? pet.dono?._id
             : pet.dono;
 
         return dono === clienteEncontrado._id;
-
       });
 
-
       setPets(meusPets);
-
     } catch (error) {
-
       console.error(error);
 
       setMensagemErro(
         "Não foi possível carregar seus pets."
       );
-
     }
   }
-
 
   // ==========================================
   // LIMPAR FORMULÁRIO
   // ==========================================
 
   function limparFormulario() {
-
     setNovoPet({
       nome: "",
       especie: "",
@@ -142,13 +124,11 @@ function PetsCliente() {
     setMostrarFormulario(false);
   }
 
-
   // ==========================================
   // NOVO PET
   // ==========================================
 
   function novoPetFormulario() {
-
     setEditando(null);
 
     setMensagemErro("");
@@ -162,13 +142,11 @@ function PetsCliente() {
     setMostrarFormulario(true);
   }
 
-
   // ==========================================
   // EDITAR PET
   // ==========================================
 
   function editarPet(pet) {
-
     setEditando(pet._id);
 
     setMensagemErro("");
@@ -182,24 +160,20 @@ function PetsCliente() {
     setMostrarFormulario(true);
   }
 
-
   // ==========================================
   // SALVAR PET
   // ==========================================
 
   async function salvarPet(e) {
-
     e.preventDefault();
 
     setMensagemErro("");
-
 
     if (
       !novoPet.nome.trim() ||
       !novoPet.especie.trim() ||
       !novoPet.raca.trim()
     ) {
-
       setMensagemErro(
         "Preencha todos os campos."
       );
@@ -207,9 +181,7 @@ function PetsCliente() {
       return;
     }
 
-
     if (!cliente) {
-
       setMensagemErro(
         "Cliente não encontrado."
       );
@@ -217,18 +189,14 @@ function PetsCliente() {
       return;
     }
 
-
     const editandoPet =
       editando !== null;
-
 
     const url = editandoPet
       ? `http://localhost:5000/api/pets/${editando}`
       : "http://localhost:5000/api/pets";
 
-
     try {
-
       const resposta = await fetch(
         url,
         {
@@ -253,13 +221,10 @@ function PetsCliente() {
         }
       );
 
-
       const dados =
         await resposta.json();
 
-
       if (!resposta.ok) {
-
         setMensagemErro(
           dados.mensagem ||
             "Erro ao salvar pet."
@@ -268,13 +233,11 @@ function PetsCliente() {
         return;
       }
 
-
       // ======================================
       // EDITAR
       // ======================================
 
       if (editandoPet) {
-
         setPets((listaAtual) =>
           listaAtual.map((pet) =>
             pet._id === editando
@@ -282,65 +245,37 @@ function PetsCliente() {
               : pet
           )
         );
-
-        alert(
-          "Pet alterado com sucesso!"
-        );
-
       }
-
 
       // ======================================
       // NOVO PET
       // ======================================
 
       else {
-
         setPets((listaAtual) => [
           dados,
           ...listaAtual
         ]);
-
-        alert(
-          "Pet cadastrado com sucesso!"
-        );
-
       }
 
-
       limparFormulario();
-
     } catch (error) {
-
       console.error(error);
 
       setMensagemErro(
         "Erro ao conectar com o servidor."
       );
-
     }
   }
-
 
   // ==========================================
   // REMOVER PET
   // ==========================================
 
   async function removerPet(id) {
-
-    const confirmar =
-      window.confirm(
-        "Deseja realmente remover este pet?"
-      );
-
-
-    if (!confirmar) {
-      return;
-    }
-
+    setMensagemErro("");
 
     try {
-
       const resposta =
         await fetch(
           `http://localhost:5000/api/pets/${id}`,
@@ -349,14 +284,11 @@ function PetsCliente() {
           }
         );
 
-
       const dados =
         await resposta.json();
 
-
       if (!resposta.ok) {
-
-        alert(
+        setMensagemErro(
           dados.mensagem ||
             "Erro ao remover pet."
         );
@@ -364,30 +296,20 @@ function PetsCliente() {
         return;
       }
 
-
       setPets((listaAtual) =>
         listaAtual.filter(
           (pet) =>
             pet._id !== id
         )
       );
-
-
-      alert(
-        "Pet removido com sucesso!"
-      );
-
     } catch (error) {
-
       console.error(error);
 
-      alert(
+      setMensagemErro(
         "Erro ao conectar com o servidor."
       );
-
     }
   }
-
 
   // ==========================================
   // TELA
@@ -395,9 +317,7 @@ function PetsCliente() {
 
   return (
     <div>
-
       <div className="titulo-clientes">
-
         <h1>
           Meus Pets
         </h1>
@@ -407,9 +327,7 @@ function PetsCliente() {
         >
           + Novo Pet
         </button>
-
       </div>
-
 
       {/* ======================================
           MENSAGEM DE ERRO
@@ -421,77 +339,62 @@ function PetsCliente() {
         </p>
       )}
 
-
       {/* ======================================
           FORMULÁRIO
       ====================================== */}
 
       {mostrarFormulario && (
-
         <form
           className="formulario"
           onSubmit={salvarPet}
         >
-
           <input
             type="text"
             placeholder="Nome do pet"
             value={novoPet.nome}
             onChange={(e) => {
-
               setMensagemErro("");
 
               setNovoPet({
                 ...novoPet,
                 nome: e.target.value
               });
-
             }}
           />
-
 
           <input
             type="text"
             placeholder="Espécie"
             value={novoPet.especie}
             onChange={(e) => {
-
               setMensagemErro("");
 
               setNovoPet({
                 ...novoPet,
                 especie: e.target.value
               });
-
             }}
           />
-
 
           <input
             type="text"
             placeholder="Raça"
             value={novoPet.raca}
             onChange={(e) => {
-
               setMensagemErro("");
 
               setNovoPet({
                 ...novoPet,
                 raca: e.target.value
               });
-
             }}
           />
 
-
           <button type="submit">
-
             {editando !== null
               ? "Salvar Alterações"
               : "Salvar Pet"}
-
           </button>
-
 
           <button
             type="button"
@@ -499,20 +402,15 @@ function PetsCliente() {
           >
             Cancelar
           </button>
-
         </form>
-
       )}
-
 
       {/* ======================================
           LISTA DOS PETS
       ====================================== */}
 
       {pets.length === 0 ? (
-
         <div className="cliente-vazio">
-
           <p>
             Você ainda não possui pets cadastrados.
           </p>
@@ -521,46 +419,31 @@ function PetsCliente() {
             Clique em "+ Novo Pet" para cadastrar
             seu pet.
           </small>
-
         </div>
-
       ) : (
-
         <div className="pets-container">
-
           {pets.map((pet) => (
-
             <div
               className="pet-card"
               key={pet._id}
             >
-
               <h2>
                 {pet.nome}
               </h2>
 
-
               <p>
-
                 <span className="info-label">
                   Espécie:
                 </span>{" "}
-
                 {pet.especie}
-
               </p>
 
-
               <p>
-
                 <span className="info-label">
                   Raça:
                 </span>{" "}
-
                 {pet.raca}
-
               </p>
-
 
               <button
                 className="botao-card"
@@ -571,7 +454,6 @@ function PetsCliente() {
                 Editar
               </button>
 
-
               <button
                 className="botao-card"
                 onClick={() =>
@@ -580,15 +462,10 @@ function PetsCliente() {
               >
                 Remover
               </button>
-
             </div>
-
           ))}
-
         </div>
-
       )}
-
     </div>
   );
 }

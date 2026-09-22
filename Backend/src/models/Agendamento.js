@@ -31,7 +31,7 @@ const agendamentoSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Pendente", "Confirmado", "Finalizado"],
+      enum: ["Pendente", "Confirmado",],
       default: "Pendente"
     }
   },
